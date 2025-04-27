@@ -7,7 +7,7 @@ const bot = new Telegraf('7184926549:AAGARrhnukaFGD41jnjfpTseZZQ--vfoDTw'); // R
 
 const wallet = new HathorWallet({
   seed: 'item mechanic tide start pair picnic steak friend void patient survey ecology sea goose letter grass concert shrug force holiday worry alone spare pattern', // Replace with your Hathor wallet seed
-  network: new Network('testnet-alpha'),
+  network: new Network('testnet'),
 connection: {
 nodeUrl: 'https://node.alpha.nano-testnet.hathor.network/v1a/',
 },
