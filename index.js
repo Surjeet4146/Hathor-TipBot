@@ -3,10 +3,10 @@ const { HathorWallet, Network } = require('@hathor/wallet-lib');
 const db = require('./db.js');
 const { exec } = require('child_process');
 
-const bot = new Telegraf('7184926549:AAGARrhnukaFGD41jnjfpTseZZQ--vfoDTw'); // Replace with your BotFather token
+const bot = new Telegraf('token'); // Replace with bot token
 
 const wallet = new HathorWallet({
-  seed: 'item mechanic tide start pair picnic steak friend void patient survey ecology sea goose letter grass concert shrug force holiday worry alone spare pattern', // Replace with your Hathor wallet seed
+  seed: 'wallet seed', // your Hathor wallet seed
   network: new Network('testnet'),
 connection: {
 nodeUrl: 'https://node.alpha.nano-testnet.hathor.network/v1a/',
