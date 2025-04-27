@@ -1,0 +1,25 @@
+{
+  "name": "hathor-tipbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Surjeet4146/Hathor-TipBot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Surjeet4146/Hathor-TipBot/issues"
+  },
+  "homepage": "https://github.com/Surjeet4146/Hathor-TipBot#readme",
+  "dependencies": {
+    "@hathor/wallet-lib": "^2.2.0",
+    "sqlite3": "^5.1.7",
+    "telegraf": "^4.16.3"
+  }
+}
