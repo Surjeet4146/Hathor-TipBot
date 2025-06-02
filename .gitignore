@@ -1,4 +1,4 @@
-```
+
 # Dependencies
 node_modules/
 npm-debug.log*
@@ -47,4 +47,3 @@ pids/
 *.pid
 *.seed
 *.pid.lock
-```
