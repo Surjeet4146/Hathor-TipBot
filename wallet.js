@@ -50,4 +50,4 @@ async function stopWallet() {
     }
 }
 
-module.exports = getWalletInstance;
+module.exports = getWalletInstance; 
