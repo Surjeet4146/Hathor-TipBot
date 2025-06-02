@@ -3,16 +3,22 @@ const { HathorWallet, Network } = require('@hathor/wallet-lib');
 const db = require('./db.js');
 const { exec } = require('child_process');
 
-const bot = new Telegraf('7376741953:AAFfJy6LK2XgsPqH3p2TkZSSlDJqU-WwfEs'); // Replace with bot token
+const bot = new Telegraf('7376741953:AAFfJy6LK2XgsPqH3p2TkZSSlDJqU-WwfEs');
 
 const wallet = new HathorWallet({
-              seed: 'item mechanic tide start pair picnic steak friend void patient survey ecology sea goose letter grass concert shrug force holiday worry alone spare pattern', // your Hathor wallet seed
+  seed: 'item mechanic tide start pair picnic steak friend void patient survey ecology sea goose letter grass concert shrug force holiday worry alone spare pattern',
   network: new Network('testnet'),
-connection: {
-nodeUrl: 'https://node.alpha.nano-testnet.hathor.network/v1a/',
-},
+  connection: {
+    nodeUrl: 'https://node.alpha.nano-testnet.hathor.network/v1a/',
+  },
 });
-wallet.start();
+
+// Initialize wallet
+wallet.start().then(() => {
+  console.log('✅ Hathor wallet started successfully!');
+}).catch(err => {
+  console.error('❌ Error starting wallet:', err);
+});
 
 bot.command('register', (ctx) => {
   const username = ctx.message.from.username;
