@@ -3,7 +3,7 @@ const { HathorWallet, Network } = require('@hathor/wallet-lib');
 const db = require('./db.js');
 const { exec } = require('child_process');
 
-const bot = new Telegraf('token'); // Replace with bot token
+const bot = new Telegraf('7376741953:AAFfJy6LK2XgsPqH3p2TkZSSlDJqU-WwfEs'); // Replace with bot token
 
 const wallet = new HathorWallet({
   seed: 'wallet seed', // your Hathor wallet seed
