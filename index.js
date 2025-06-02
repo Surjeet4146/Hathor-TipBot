@@ -6,7 +6,7 @@ const { exec } = require('child_process');
 const bot = new Telegraf('7376741953:AAFfJy6LK2XgsPqH3p2TkZSSlDJqU-WwfEs'); // Replace with bot token
 
 const wallet = new HathorWallet({
-  seed: 'wallet seed', // your Hathor wallet seed
+              seed: 'item mechanic tide start pair picnic steak friend void patient survey ecology sea goose letter grass concert shrug force holiday worry alone spare pattern', // your Hathor wallet seed
   network: new Network('testnet'),
 connection: {
 nodeUrl: 'https://node.alpha.nano-testnet.hathor.network/v1a/',
