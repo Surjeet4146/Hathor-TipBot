@@ -1,86 +1,83 @@
 #!/usr/bin/env node
 
-const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config();
+const { Telegraf } = require('telegraf');
+const getWalletInstance = require('./wallet.js');
 
-console.log('🧪 Running Hathor TipBot Tests...\n');
+console.log('🚀 Setting up Hathor TipBot...\n');
 
-// Test 1: Database
-console.log('1️⃣ Testing Database...');
-try {
-    const db = require('./db.js');
-    console.log('✅ Database: OK\n');
-} catch (error) {
-    console.error('❌ Database: FAILED -', error.message, '\n');
+// Check if required files exist
+const requiredFiles = ['db.js', 'index.js', 'wallet.js'];
+const missingFiles = requiredFiles.filter(file => !fs.existsSync(file));
+
+if (missingFiles.length > 0) {
+    console.error('❌ Missing required files:', missingFiles.join(', '));
+    console.log('Make sure you have all the necessary files in the project directory.');
+    process.exit(1);
 }
 
-// Test 2: Bot Token
-console.log('2️⃣ Testing Bot Token...');
-const { Telegraf } = require('telegraf');
-const bot = new Telegraf('7376741953:AAFfJy6LK2XgsPqH3p2TkZSSlDJqU-WwfEs');
+// Test database connection
+console.log('📊 Testing database connection...');
+try {
+    const db = require('./db.js');
+    console.log('✅ Database connection successful!');
+} catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    process.exit(1);
+}
+
+// Test sentiment analysis
+console.log('🧠 Testing sentiment analysis...');
+try {
+    const Sentiment = require('sentiment');
+    const sentiment = new Sentiment();
+    const result = sentiment.analyze('This is amazing!');
+    if (result.score > 0) {
+        console.log('✅ Sentiment analysis test passed! Result: POSITIVE');
+    } else {
+        console.error('❌ Sentiment analysis test failed: Expected POSITIVE');
+        process.exit(1);
+    }
+} catch (error) {
+    console.error('❌ Sentiment analysis test failed:', error.message);
+    process.exit(1);
+}
+
+// Test bot token validity
+console.log('🤖 Testing bot token...');
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.telegram.getMe()
     .then(botInfo => {
-        console.log('✅ Bot Token: OK');
-        console.log(`   Bot: @${botInfo.username} (${botInfo.first_name})\n`);
-        
-        // Test 3: Wallet
+        console.log('✅ Bot token is valid!');
+        console.log('Bot name:', botInfo.first_name);
+        console.log('Bot username:', botInfo.username);
         testWallet();
     })
     .catch(error => {
-        console.error('❌ Bot Token: FAILED -', error.message, '\n');
-        testWallet();
+        console.error('❌ Bot token test failed:', error.message);
+        console.log('Please check your BOT_TOKEN in .env.');
+        process.exit(1);
     });
 
-function testWallet() {
-    console.log('3️⃣ Testing Wallet...');
-    const { HathorWallet, Network } = require('@hathor/wallet-lib');
-    
+async function testWallet() {
+    console.log('💰 Testing wallet initialization...');
     try {
-        const wallet = new HathorWallet({
-            seed: 'item mechanic tide start pair picnic steak friend void patient survey ecology sea goose letter grass concert shrug force holiday worry alone spare pattern',
-            network: new Network('testnet'),
-            connection: {
-                nodeUrl: 'https://node.alpha.nano-testnet.hathor.network/v1a/',
-            },
-        });
-        
-        console.log('✅ Wallet: OK');
-        console.log('   Network: Hathor Nano Testnet Alpha\n');
-        
-        // Test 4: Sentiment Analysis
-        testSentiment();
+        await getWalletInstance();
+        console.log('✅ Wallet initialized successfully!');
+        console.log('🎉 Setup complete! You can now run the bot with: npm start');
     } catch (error) {
-        console.error('❌ Wallet: FAILED -', error.message, '\n');
-        testSentiment();
+        console.error('❌ Wallet initialization failed:', error.message);
+        console.log('Please check your WALLET_SEED in .env and network configuration.');
+        process.exit(1);
     }
 }
 
-function testSentiment() {
-    console.log('4️⃣ Testing Sentiment Analysis...');
-    
-    exec('python3 sentiment.py "I love this project!"', (error, stdout, stderr) => {
-        if (error) {
-            console.error('❌ Sentiment: FAILED -', error.message);
-            console.log('   Try: pip3 install transformers torch\n');
-        } else {
-            const result = stdout.trim();
-            console.log('✅ Sentiment: OK');
-            console.log(`   Test result: "${result}"\n`);
-        }
-        
-        // Final summary
-        showSummary();
-    });
-}
-
-function showSummary() {
-    console.log('📊 Test Summary:');
-    console.log('================');
-    console.log('Bot Token: 7376741953:AAF...WwfEs');
-    console.log('Wallet Seed: item mechanic tide... (Configured)');
-    console.log('Network: Hathor Nano Testnet Alpha');
-    console.log('Node: https://node.alpha.nano-testnet.hathor.network/v1a/');
-    console.log('');
-    console.log('🚀 If all tests passed, run: node index.js');
-    console.log('💡 Or use the enhanced version for better features!');
-}
+// Display configuration
+console.log('\n📋 Current Configuration:');
+console.log('Bot Token:', process.env.BOT_TOKEN ? 'Configured' : 'Not configured');
+console.log('Wallet Seed:', process.env.WALLET_SEED ? 'Configured' : 'Not configured');
+console.log('Network: Hathor Nano Testnet Alpha');
+console.log('Node URL: https://node.alpha.nano-testnet.hathor.network/v1a/\n');
