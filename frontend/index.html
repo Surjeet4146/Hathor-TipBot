@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hathor TipBot Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.7/dist/axios.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
+</head>
+<body>
+  <div id="root" className="min-h-screen bg-gray-50"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function App() {
+      const [username, setUsername] = useState('');
+      const [balance, setBalance] = useState(null);
+      const [proposals, setProposals] = useState([]);
+      const [transactions, setTransactions] = useState([]);
+      const [error, setError] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      useEffect(() => {
+        if (username) {
+          setLoading(true);
+          setError('');
+          
+          const fetchData = async () => {
+            try {
+              const [balanceRes, proposalsRes, transactionsRes] = await Promise.all([
+                axios.get(`/api/balance/${username}`),
+                axios.get(`/api/proposals`),
+                axios.get(`/api/transactions/${username}?limit=10`)
+              ]);
+              
+              setBalance(balanceRes.data);
+              setProposals(proposalsRes.data);
+              setTransactions(transactionsRes.data);
+            } catch (err) {
+              const message = err.response?.status === 404 ? 'User not found. Please register in Telegram.' : 'Failed to load data. Please try again.';
+              setError(message);
+              console.error('API Error:', err);
+            } finally {
+              setLoading(false);
+            }
+          };
+
+          fetchData();
+        }
+      }, [username]);
+
+      const handleUsernameSubmit = (e) => {
+        e.preventDefault();
+        const inputUsername = e.target.elements.username.value.trim().replace('@', '');
+        if (!/^[a-zA-Z0-9_]{5,}$/.test(inputUsername)) {
+          setError('Invalid username. Use 5+ alphanumeric characters or underscores.');
+          return;
+        }
+        setUsername(inputUsername);
+      };
+
+      const handleReset = () => {
+        setUsername('');
+        setBalance(null);
+        setProposals([]);
+        setTransactions([]);
+        setError('');
+        setLoading(false);
+      };
+
+      const formatAddress = (address) => {
+        if (!address) return 'Loading...';
+        return `${address.slice(0, 8)}...${address.slice(-8)}`;
+      };
+
+      const formatBalance = (bal) => {
+        if (bal === null || bal === undefined) return 'Loading...';
+        return new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 8
+        }).format(bal);
+      };
+
+      const formatTxHash = (hash) => {
+        return `${hash.slice(0, 10)}...${hash.slice(-10)}`;
+      };
+
+      const getProposalStatus = (votes) => {
+        const total = votes.yes + votes.no;
+        if (total === 0) return { text: 'No votes yet', color: 'text-gray-500' };
+        const yesPercentage = (votes.yes / total) * 100;
+        if (yesPercentage > 50) return { text: 'Passing', color: 'text-green-600' };
+        return { text: 'Failing', color: 'text-red-600' };
+      };
+
+      const LoadingSpinner = () => (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      );
+
+      return (
+        <div className="container mx-auto p-4 max-w-6xl">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2 text-gray-800">Hathor TipBot Dashboard</h1>
+            <p className="text-gray-600">Manage your HTR balance and view governance activity</p>
+          </div>
+          
+          {!username ? (
+            <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">Enter Telegram Username</h2>
+              <form onSubmit={handleUsernameSubmit} className="space-y-4">
+                <div>
+                  <input
+                    type="text"
+                    name="username"
+                    placeholder="username (without @)"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Enter your Telegram username without the @ symbol</p>
+                </div>
+                <button 
+                  type="submit" 
+                  className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  Access Dashboard
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center bg-white rounded-lg shadow-sm p-4">
+                <h2 className="text-xl font-semibold text-gray-800">Dashboard for @{username}</h2>
+                <button 
+                  onClick={handleReset}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Switch User
+                </button>
+              </div>
+
+              {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                  <strong>Error:</strong> {error}
+                </div>
+              )}
+              
+              {loading ? (
+                <LoadingSpinner />
+              ) : (
+                <>
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-gray-800">User Profile</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-500 uppercase tracking-wide mb-1">Username</p>
+                        <p className="font-semibold text-lg">@{username}</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-500 uppercase tracking-wide mb-1">Wallet Address</p>
+                        <p className="font-mono text-sm" title={balance?.address}>
+                          {formatAddress(balance?.address)}
+                        </p>
+                      </div>
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-500 uppercase tracking-wide mb-1">Balance</p>
+                        <p className="font-semibold text-lg text-blue-600">
+                          {formatBalance(balance?.balance)} HTR
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                      Proposals {proposals.length > 0 && <span className="text-sm text-gray-500 font-normal">({proposals.length})</span>}
+                    </h2>
+                    {proposals.length ? (
+                      <div className="space-y-4">
+                        {proposals.map(proposal => {
+                          const totalVotes = proposal.votes.yes + proposal.votes.no;
+                          const yesPercentage = totalVotes > 0 ? (proposal.votes.yes / totalVotes) * 100 : 0;
+                          const status = getProposalStatus(proposal.votes);
+                          
+                          return (
+                            <div key={proposal.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex justify-between items-start mb-3">
+                                <h3 className="font-semibold text-lg text-gray-800">Proposal #{proposal.id}</h3>
+                                <span className={`text-sm font-medium ${status.color}`}>
+                                  {status.text}
+                                </span>
+                              </div>
+                              
+                              <p className="text-gray-700 mb-4">{proposal.description}</p>
+                              
+                              <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
+                                <span>Created: {new Date(proposal.created_at).toLocaleDateString()}</span>
+                                <span>Total Votes: {totalVotes}</span>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-green-600 font-medium">Yes: {proposal.votes.yes}</span>
+                                  <span className="text-red-600 font-medium">No: {proposal.votes.no}</span>
+                                </div>
+                                {totalVotes > 0 && (
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                      style={{ width: `${yesPercentage}%` }}
+                                    ></div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No proposals available at the moment.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                      Transaction History {transactions.length > 0 && <span className="text-sm text-gray-500 font-normal">({transactions.length})</span>}
+                    </h2>
+                    {transactions.length ? (
+                      <div className="space-y-3">
+                        {transactions.slice(0, 10).map(tx => (
+                          <div key={tx.hash} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex justify-between items-center">
+                              <div className="flex-1">
+                                <p className="text-sm text-gray-500 mb-1">Transaction ID</p>
+                                <p className="font-mono text-sm text-gray-800" title={tx.hash}>
+                                  {formatTxHash(tx.hash)}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm text-gray-500 mb-1">Amount</p>
+                                <p className="font-semibold text-lg text-blue-600">
+                                  {tx.outputs?.[0]?.value ? formatBalance(tx.outputs[0].value) : 'N/A'} HTR
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {transactions.length > 10 && (
+                          <div className="text-center pt-4 border-t border-gray-200">
+                            <p className="text-gray-500 text-sm">Showing latest 10 transactions</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No transactions found for this user.</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
