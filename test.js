@@ -9,7 +9,7 @@ const getWalletInstance = require('./wallet.js');
 console.log('🚀 Setting up Hathor TipBot...\n');
 
 // Check if required files exist
-const requiredFiles = ['db.js', 'index.js', 'wallet.js'];
+const requiredFiles = ['db.js', 'index.js', 'wallet.js', 'frontend/index.html'];
 const missingFiles = requiredFiles.filter(file => !fs.existsSync(file));
 
 if (missingFiles.length > 0) {
