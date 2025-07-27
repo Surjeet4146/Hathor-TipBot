@@ -4,6 +4,7 @@ const RateLimit = require('telegraf-rate-limit');
 const Sentiment = require('sentiment');
 const winston = require('winston');
 const express = require('express');
+const cors = require('cors');
 const db = require('./db.js');
 const getWalletInstance = require('./wallet.js');
 
@@ -197,6 +198,7 @@ bot.action('propose', (ctx) => ctx.reply('Usage: /propose <description>'));
 bot.action('vote', (ctx) => ctx.reply('Usage: /vote <proposal_id> <yes/no>'));
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.get('/api/balance/:username', async (req, res) => {
@@ -239,6 +241,7 @@ app.get('/api/proposals', (req, res) => {
 });
 
 app.get('/api/transactions/:username', async (req, res) => {
+  const { limit = 10, offset = 0 } = req.query;
   db.get('SELECT address FROM users WHERE username = ?', [req.params.username], async (err, row) => {
     if (err || !row) {
       logger.error(`Error fetching transactions for ${req.params.username}:`, err);
@@ -247,7 +250,7 @@ app.get('/api/transactions/:username', async (req, res) => {
     try {
       const wallet = await getWalletInstance();
       const history = await wallet.getTxHistory();
-      res.json(history);
+      res.json(history.slice(offset, offset + parseInt(limit)));
     } catch (error) {
       logger.error(`Error fetching transactions for ${req.params.username}:`, error);
       res.status(500).json({ error: 'Failed to fetch transactions' });
