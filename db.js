@@ -9,14 +9,17 @@ db.serialize(() => {
 
   db.run(`CREATE TABLE IF NOT EXISTS proposals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    description TEXT
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS votes (
     proposal_id INTEGER,
     username TEXT,
     vote TEXT,
-    tokens INTEGER
+    tokens INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(proposal_id, username)
   )`);
 });
 
