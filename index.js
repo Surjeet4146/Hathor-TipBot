@@ -1,11 +1,11 @@
 require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
-const { HathorWallet, Network } = require('@hathor/wallet-lib');
 const RateLimit = require('telegraf-rate-limit');
 const Sentiment = require('sentiment');
 const winston = require('winston');
 const express = require('express');
 const db = require('./db.js');
+const getWalletInstance = require('./wallet.js');
 
 const logger = winston.createLogger({
   level: 'info',
@@ -25,14 +25,8 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-const bot = new Telegraf(process.env.BOT_TOKEN || '7376741953:AAFfJy6LK2XgsPqH3p2TkZSSlDJqU-WwfEs');
-const wallet = new HathorWallet({
-  seed: process.env.WALLET_SEED,
-  network: new Network('testnet'),
-  connection: {
-    nodeUrl: 'https://node.alpha.nano-testnet.hathor.network/v1a/',
-  },
-});
+const bot = new Telegraf(process.env.BOT_TOKEN);
+const sentiment = new Sentiment();
 
 const limitConfig = {
   window: 1000,
@@ -40,14 +34,6 @@ const limitConfig = {
   onLimitExceeded: (ctx) => ctx.reply('Rate limit exceeded. Try again later.')
 };
 bot.use(RateLimit(limitConfig));
-
-wallet.start().then(() => {
-  logger.info('Hathor wallet started successfully');
-}).catch(err => {
-  logger.error('Error starting wallet:', err);
-});
-
-const sentiment = new Sentiment();
 
 bot.command('register', (ctx) => {
   const username = ctx.message.from.username;
@@ -78,6 +64,7 @@ bot.command('tip', async (ctx) => {
       return ctx.reply('Receiver not registered.');
     }
     try {
+      const wallet = await getWalletInstance();
       const tx = await wallet.sendTransaction({
         outputs: [{ address: row.address, value: amountInt }],
       });
@@ -109,6 +96,7 @@ bot.command('reward', async (ctx) => {
       return ctx.reply('Receiver not registered.');
     }
     try {
+      const wallet = await getWalletInstance();
       const tx = await wallet.sendTransaction({
         outputs: [{ address: row.address, value: amountInt }],
       });
@@ -178,6 +166,7 @@ bot.on('text', (ctx) => {
     db.get('SELECT address FROM users WHERE username = ?', [username], async (err, row) => {
       if (err || !row) return;
       try {
+        const wallet = await getWalletInstance();
         const tx = await wallet.sendTransaction({
           outputs: [{ address: row.address, value: 5 }],
         });
@@ -217,6 +206,7 @@ app.get('/api/balance/:username', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     try {
+      const wallet = await getWalletInstance();
       const balance = await wallet.getBalance();
       res.json({ address: row.address, balance: balance.available });
     } catch (error) {
@@ -255,6 +245,7 @@ app.get('/api/transactions/:username', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     try {
+      const wallet = await getWalletInstance();
       const history = await wallet.getTxHistory();
       res.json(history);
     } catch (error) {
