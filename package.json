@@ -7,14 +7,14 @@
     "test": "node test.js"
   },
   "dependencies": {
-    "@hathor/wallet-lib": "^2.2.0",
+    "@hathor/wallet-lib": "^2.3.1",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
-    "sentiment": "^5.2.3",
+    "sentiment": "^5.0.2",
     "sqlite3": "^5.1.7",
     "telegraf": "^4.16.3",
-    "telegraf-rate-limit": "^2.0.0",
-    "winston": "^3.14.2",
-    "cors": "^2.8.5"
+    "telegraf-ratelimit": "^2.0.0",
+    "winston": "^3.14.2"
   }
 }

@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
-const RateLimit = require('telegraf-rate-limit');
+const RateLimit = require('telegraf-ratelimit');
 const Sentiment = require('sentiment');
 const winston = require('winston');
 const express = require('express');
@@ -192,7 +192,7 @@ bot.start((ctx) =>
   )
 );
 
-bot.action('register', (ctx) => ctx.reply('Usage: /register <address>'));
+bot.action('register', (ctx) => ctx.reply('Usageorginal: /register <address>'));
 bot.action('tip', (ctx) => ctx.reply('Usage: /tip @username <amount>'));
 bot.action('propose', (ctx) => ctx.reply('Usage: /propose <description>'));
 bot.action('vote', (ctx) => ctx.reply('Usage: /vote <proposal_id> <yes/no>'));
